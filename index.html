@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My To-Do List</title>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <style>
+        :root {
+            --primary: #4F46E5;
+            --primary-dark: #4338CA;
+            --secondary: #10B981;
+            --danger: #EF4444;
+            --danger-dark: #DC2626;
+            --text-dark: #1F2937;
+            --text-light: #6B7280;
+            --bg-gray: #F9FAFB;
+            --border-gray: #E5E7EB;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: var(--text-dark);
+        }
+
+        .app-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, var(--primary) 0%, #6366F1 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .task-counter {
+            font-size: 16px;
+            opacity: 0.95;
+            font-weight: 500;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .input-section {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 25px;
+        }
+
+        .task-input {
+            flex: 1;
+            padding: 14px 18px;
+            font-size: 16px;
+            border: 2px solid var(--border-gray);
+            border-radius: 12px;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .task-input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        }
+
+        .add-button {
+            padding: 14px 28px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .add-button:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(79, 70, 229, 0.4);
+        }
+
+        .add-button:active {
+            transform: translateY(0);
+        }
+
+        .filter-section {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid var(--bg-gray);
+            padding-bottom: 15px;
+        }
+
+        .filter-button {
+            padding: 8px 20px;
+            background: transparent;
+            color: var(--text-light);
+            border: 2px solid transparent;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .filter-button:hover {
+            color: var(--primary);
+            background: rgba(79, 70, 229, 0.05);
+        }
+
+        .filter-button.active {
+            color: var(--primary);
+            border-color: var(--primary);
+            background: rgba(79, 70, 229, 0.1);
+        }
+
+        .task-list {
+            max-height: 400px;
+            overflow-y: auto;
+            margin-bottom: 20px;
+        }
+
+        .task-list::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .task-list::-webkit-scrollbar-track {
+            background: var(--bg-gray);
+            border-radius: 4px;
+        }
+
+        .task-list::-webkit-scrollbar-thumb {
+            background: var(--border-gray);
+            border-radius: 4px;
+        }
+
+        .task-list::-webkit-scrollbar-thumb:hover {
+            background: var(--text-light);
+        }
+
+        .task-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px;
+            background: white;
+            border: 2px solid var(--border-gray);
+            border-radius: 12px;
+            margin-bottom: 10px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .task-item:hover {
+            border-color: var(--primary);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            transform: translateY(-2px);
+        }
+
+        .task-item.completed {
+            background: var(--bg-gray);
+            opacity: 0.7;
+        }
+
+        .task-checkbox {
+            width: 24px;
+            height: 24px;
+            border: 2px solid var(--border-gray);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: all 0.3s ease;
+        }
+
+        .task-item.completed .task-checkbox {
+            background: var(--secondary);
+            border-color: var(--secondary);
+        }
+
+        .task-checkbox::after {
+            content: '✓';
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            opacity: 0;
+            transform: scale(0);
+            transition: all 0.3s ease;
+        }
+
+        .task-item.completed .task-checkbox::after {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        .task-text {
+            flex: 1;
+            font-size: 16px;
+            color: var(--text-dark);
+            transition: all 0.3s ease;
+        }
+
+        .task-item.completed .task-text {
+            text-decoration: line-through;
+            color: var(--text-light);
+        }
+
+        .delete-button {
+            padding: 8px 12px;
+            background: transparent;
+            color: var(--danger);
+            border: none;
+            border-radius: 6px;
+            font-size: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0.6;
+        }
+
+        .delete-button:hover {
+            background: rgba(239, 68, 68, 0.1);
+            opacity: 1;
+            transform: scale(1.1);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-light);
+        }
+
+        .empty-state-icon {
+            font-size: 64px;
+            margin-bottom: 16px;
+        }
+
+        .empty-state-text {
+            font-size: 18px;
+            font-weight: 500;
+        }
+
+        .footer {
+            display: flex;
+            justify-content: center;
+            padding-top: 15px;
+            border-top: 2px solid var(--bg-gray);
+        }
+
+        .clear-button {
+            padding: 12px 24px;
+            background: transparent;
+            color: var(--danger);
+            border: 2px solid var(--danger);
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .clear-button:hover {
+            background: var(--danger);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+        }
+
+        .clear-button:active {
+            transform: translateY(0);
+        }
+
+        @media (max-width: 640px) {
+            body {
+                padding: 10px;
+            }
+
+            .content {
+                padding: 20px;
+            }
+
+            .header h1 {
+                font-size: 24px;
+            }
+
+            .input-section {
+                flex-direction: column;
+            }
+
+            .filter-section {
+                flex-wrap: wrap;
+            }
+
+            .filter-button {
+                flex: 1;
+                min-width: 80px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState } = React;
+
+        function TodoApp() {
+            const [tasks, setTasks] = useState([]);
+            const [inputValue, setInputValue] = useState('');
+            const [filter, setFilter] = useState('all');
+
+            const addTask = () => {
+                const trimmedValue = inputValue.trim();
+                if (trimmedValue === '') return;
+
+                const newTask = {
+                    id: Date.now(),
+                    text: trimmedValue,
+                    completed: false
+                };
+
+                setTasks([...tasks, newTask]);
+                setInputValue('');
+            };
+
+            const deleteTask = (id) => {
+                setTasks(tasks.filter(task => task.id !== id));
+            };
+
+            const toggleTask = (id) => {
+                setTasks(tasks.map(task => 
+                    task.id === id ? { ...task, completed: !task.completed } : task
+                ));
+            };
+
+            const clearCompleted = () => {
+                setTasks(tasks.filter(task => !task.completed));
+            };
+
+            const handleKeyPress = (e) => {
+                if (e.key === 'Enter') {
+                    addTask();
+                }
+            };
+
+            const getFilteredTasks = () => {
+                switch(filter) {
+                    case 'active':
+                        return tasks.filter(task => !task.completed);
+                    case 'completed':
+                        return tasks.filter(task => task.completed);
+                    default:
+                        return tasks;
+                }
+            };
+
+            const filteredTasks = getFilteredTasks();
+            const completedCount = tasks.filter(task => task.completed).length;
+            const totalCount = tasks.length;
+            const hasCompletedTasks = completedCount > 0;
+
+            return (
+                <div className="app-container">
+                    <div className="header">
+                        <h1> My To-Do List</h1>
+                        <div className="task-counter">
+                            {completedCount} of {totalCount} tasks completed
+                        </div>
+                    </div>
+
+                    <div className="content">
+                        <div className="input-section">
+                            <input
+                                type="text"
+                                className="task-input"
+                                placeholder="What needs to be done?"
+                                value={inputValue}
+                                onChange={(e) => setInputValue(e.target.value)}
+                                onKeyPress={handleKeyPress}
+                            />
+                            <button className="add-button" onClick={addTask}>
+                                <span></span>
+                                <span>Add</span>
+                            </button>
+                        </div>
+
+                        <div className="filter-section">
+                            <button
+                                className={`filter-button ${filter === 'all' ? 'active' : ''}`}
+                                onClick={() => setFilter('all')}
+                            >
+                                All
+                            </button>
+                            <button
+                                className={`filter-button ${filter === 'active' ? 'active' : ''}`}
+                                onClick={() => setFilter('active')}
+                            >
+                                Active
+                            </button>
+                            <button
+                                className={`filter-button ${filter === 'completed' ? 'active' : ''}`}
+                                onClick={() => setFilter('completed')}
+                            >
+                                Completed
+                            </button>
+                        </div>
+
+                        <div className="task-list">
+                            {filteredTasks.length === 0 ? (
+                                <div className="empty-state">
+                                    <div className="empty-state-icon"></div>
+                                    <div className="empty-state-text">
+                                        {tasks.length === 0 
+                                            ? "No tasks yet. Add one to get started!" 
+                                            : filter === 'active' 
+                                            ? "No active tasks. Great job!" 
+                                            : "No completed tasks yet."}
+                                    </div>
+                                </div>
+                            ) : (
+                                filteredTasks.map(task => (
+                                    <div
+                                        key={task.id}
+                                        className={`task-item ${task.completed ? 'completed' : ''}`}
+                                        onClick={() => toggleTask(task.id)}
+                                    >
+                                        <div className="task-checkbox"></div>
+                                        <div className="task-text">{task.text}</div>
+                                        <button
+                                            className="delete-button"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                deleteTask(task.id);
+                                            }}
+                                        >
+                                            
+                                        </button>
+                                    </div>
+                                ))
+                            )}
+                        </div>
+
+                        {hasCompletedTasks && (
+                            <div className="footer">
+                                <button className="clear-button" onClick={clearCompleted}>
+                                    Clear Completed
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<TodoApp />);
+    </script>
+</body>
+</html>
