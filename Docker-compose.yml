@@ -4,4 +4,4 @@ services :
     ports:
       - 200:80
     volumes: 
-        - ./index.html:/var/opt/nginx:ro
+        - ./index.html:/usr/share/nginx/html/index.html:ro
